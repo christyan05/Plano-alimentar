@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano Alimentar Interativo Completo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Slate & Teal -->
+    <!-- Application Structure Plan: A tab-based SPA with three main sections: 'Plano Semanal', 'Receitas', and 'Lista de Compras'. This structure logically separates the primary user tasks (viewing daily meals, checking how to cook them, and planning shopping). The 'Plano Semanal' uses daily buttons for focused viewing. The 'Receitas' section uses an accordion pattern to show/hide recipes, keeping the UI clean. This task-oriented architecture is highly intuitive for managing a meal plan. -->
+    <!-- Visualization & Content Choices: Report Info: Meal Plan, Recipes, Shopping List -> Goal: Inform, Organize -> Presentation: Structured HTML cards and lists with detailed nutritional info -> Interaction: Tab navigation for main sections, button clicks for daily plans, and accordions for recipes. -> Justification: These simple, effective interactions allow users to access detailed information without being overwhelmed, promoting usability. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .main-nav-btn {
+            transition: all 0.2s ease-in-out;
+            border-bottom: 4px solid transparent;
+        }
+        .main-nav-btn.active {
+            border-bottom-color: #0d9488; /* teal-600 */
+            color: #0f766e; /* teal-700 */
+        }
+        .day-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .day-btn.active {
+            background-color: #0d9488; /* teal-600 */
+            color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .recipe-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="container mx-auto max-w-6xl p-4 sm:p-6">
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-800">Plano Alimentar Familiar Otimizado</h1>
+            <p class="text-slate-600 mt-2">Seu guia completo para uma semana de nutrição, com receitas e lista de compras.</p>
+        </header>
+
+        <nav class="flex justify-center border-b border-slate-200 mb-8">
+            <button data-section="plan" class="main-nav-btn active text-lg font-semibold py-4 px-6 text-slate-600 hover:text-teal-600">Plano Semanal</button>
+            <button data-section="recipes" class="main-nav-btn text-lg font-semibold py-4 px-6 text-slate-600 hover:text-teal-600">Receitas</button>
+            <button data-section="shopping" class="main-nav-btn text-lg font-semibold py-4 px-6 text-slate-600 hover:text-teal-600">Lista de Compras</button>
+        </nav>
+
+        <main>
+            <section id="plan" class="content-section active">
+                <div class="flex flex-wrap justify-center gap-2 mb-8">
+                    <button data-day="segunda" class="day-btn active px-4 py-2 rounded-full font-semibold bg-white text-slate-700 shadow-sm border border-slate-200 hover:bg-teal-500 hover:text-white">Segunda</button>
+                    <button data-day="terca" class="day-btn px-4 py-2 rounded-full font-semibold bg-white text-slate-700 shadow-sm border border-slate-200 hover:bg-teal-500 hover:text-white">Terça</button>
+                    <button data-day="quarta" class="day-btn px-4 py-2 rounded-full font-semibold bg-white text-slate-700 shadow-sm border border-slate-200 hover:bg-teal-500 hover:text-white">Quarta</button>
+                    <button data-day="quinta" class="day-btn px-4 py-2 rounded-full font-semibold bg-white text-slate-700 shadow-sm border border-slate-200 hover:bg-teal-500 hover:text-white">Quinta</button>
+                    <button data-day="sexta" class="day-btn px-4 py-2 rounded-full font-semibold bg-white text-slate-700 shadow-sm border border-slate-200 hover:bg-teal-500 hover:text-white">Sexta</button>
+                    <button data-day="sabado" class="day-btn px-4 py-2 rounded-full font-semibold bg-white text-slate-700 shadow-sm border border-slate-200 hover:bg-teal-500 hover:text-white">Sábado</button>
+                    <button data-day="domingo" class="day-btn px-4 py-2 rounded-full font-semibold bg-white text-slate-700 shadow-sm border border-slate-200 hover:bg-teal-500 hover:text-white">Domingo</button>
+                </div>
+                <div id="plan-content"></div>
+            </section>
+
+            <section id="recipes" class="content-section">
+                 <h2 class="text-2xl font-bold text-center mb-6 text-teal-700">Guia de Receitas Passo a Passo</h2>
+                 <div id="recipes-content" class="space-y-4"></div>
+            </section>
+
+            <section id="shopping" class="content-section">
+                <h2 class="text-2xl font-bold text-center mb-6 text-teal-700">Lista de Compras da Família</h2>
+                <div id="shopping-content" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+            </section>
+        </main>
+
+    </div>
+
+    <script>
+        const appData = {
+            mealPlan: {
+                segunda: [
+                    { time: "Café da Manhã", food: "Cuscuz com 2 ovos mexidos e açafrão. 1 fatia de mamão.", calories: "~350 kcal", benefits: "Energia prolongada, saúde intestinal e ação anti-inflamatória.", nutrients: "Carboidratos, Proteínas, Fibras, Vitamina A, Curcumina." },
+                    { time: "Almoço", food: "Frango grelhado com arroz integral, feijão verde e salada colorida.", calories: "~550 kcal", benefits: "Construção muscular, saciedade e fornecimento de fibras e vitaminas.", nutrients: "Proteína magra, Carboidratos complexos, Ferro, Vitaminas A e C." },
+                    { time: "Lanche", food: "Banana amassada com aveia sem glúten e canela.", calories: "~150 kcal", benefits: "Energia rápida, saúde do coração e controle do açúcar no sangue.", nutrients: "Potássio, Fibras solúveis, Magnésio." },
+                    { time: "Jantar", food: "Sopa de jerimum com gengibre e frango desfiado.", calories: "~300 kcal", benefits: "Leve, digestiva, anti-inflamatória e fortalece a imunidade.", nutrients: "Vitamina A, Potássio, Gingerol, Proteína." },
+                    { time: "Ceia", food: "Chá de camomila com 2 fatias de abacaxi.", calories: "~50 kcal", benefits: "Promove o sono, auxilia na digestão e tem efeito calmante.", nutrients: "Bromelina, Apigenina." }
+                ],
+                terca: [
+                    { time: "Café da Manhã", food: "Tapioca com carne de sol desfiada. Suco de acerola natural.", calories: "~400 kcal", benefits: "Fonte de energia rápida, proteína para saciedade e alta dose de Vitamina C.", nutrients: "Carboidratos, Proteína, Ferro, Vitamina C." },
+                    { time: "Almoço", food: "Posta de peixe (Dourada) assada com batatas e pimentões. Brócolis no vapor.", calories: "~500 kcal", benefits: "Saúde cerebral e cardiovascular, suporte hormonal e antioxidantes.", nutrients: "Ômega-3, Proteína, Potássio, Sulforafano, Vitamina C." },
+                    { time: "Lanche", food: "Um punhado de castanhas de caju e 3 damascos secos.", calories: "~180 kcal", benefits: "Saúde do coração, energia e melhora da saúde da pele.", nutrients: "Gorduras boas, Magnésio, Zinco, Ferro, Vitamina A." },
+                    { time: "Jantar", food: "Omelete com 2 ovos e recheio de legumes. Salada verde.", calories: "~280 kcal", benefits: "Refeição leve, rica em proteínas para reparo noturno e cheia de micronutrientes.", nutrients: "Proteína, Colina, Vitaminas (A, D, K), Fibras." },
+                    { time: "Ceia", food: "1 banana pequena com 5 morangos.", calories: "~100 kcal", benefits: "Fonte de potássio, antioxidantes e promove o relaxamento.", nutrients: "Potássio, Vitamina C, Fibras." }
+                ],
+                 quarta: [
+                    { time: "Café da Manhã", food: "Vitamina de abacate com leite de coco e mel. 2 ovos cozidos.", calories: "~450 kcal", benefits: "Gorduras saudáveis para o cérebro, saciedade prolongada e energia.", nutrients: "Gorduras monoinsaturadas, Proteína, Potássio." },
+                    { time: "Almoço", food: "Lentilha guisada com legumes (cenoura, batata, chuchu). Arroz integral.", calories: "~470 kcal", benefits: "Rica em proteína vegetal e ferro, ótima para energia e saúde do sangue.", nutrients: "Proteína vegetal, Fibras, Ferro, Folato." },
+                    { time: "Lanche", food: "1 fatia de melão com sementes de abóbora.", calories: "~150 kcal", benefits: "Hidratação, saúde da próstata e fonte de magnésio.", nutrients: "Vitamina C, Potássio, Zinco, Magnésio." },
+                    { time: "Jantar", food: "Salada morna de batata-doce com frango desfiado e folhas verdes.", calories: "~380 kcal", benefits: "Refeição completa e leve, com carboidrato de baixo índice glicêmico e proteína magra.", nutrients: "Carboidratos complexos, Proteína, Vitamina A, Fibras." },
+                    { time: "Ceia", food: "1 fatia de melão e chá de mulungu ou passiflora.", calories: "~60 kcal", benefits: "Hidratação e efeito calmante potente para uma noite de sono reparadora.", nutrients: "Vitamina C, Potássio, Flavonoides." }
+                ],
+                quinta: [
+                    { time: "Café da Manhã", food: "Inhame cozido amassado com azeite. Café ou chá.", calories: "~250 kcal", benefits: "Propriedades depurativas, suporte à saúde feminina e energia.", nutrients: "Carboidratos complexos, Vitamina C, Potássio." },
+                    { time: "Almoço", food: "Picadinho de carne bovina com vagem e cenoura. Arroz integral e feijão macassar.", calories: "~580 kcal", benefits: "Combate a anemia, fornece energia e fortalece os músculos.", nutrients: "Ferro heme, Proteína, Zinco, Vitamina A." },
+                    { time: "Lanche", food: "Mix de frutas picadas: manga e laranja.", calories: "~120 kcal", benefits: "Reforço imunológico, saúde da pele e hidratação.", nutrients: "Vitamina C, Vitamina A, Fibras." },
+                    { time: "Jantar", food: "Charuto de couve recheado com carne moída.", calories: "~380 kcal", benefits: "Nutritivo, baixo em carboidratos e rico em compostos detoxificantes.", nutrients: "Proteína, Ferro, Cálcio, Vitamina K." },
+                    { time: "Ceia", food: "1 fatia de melancia.", calories: "~80 kcal", benefits: "Hidratação intensa, saúde do coração e recuperação muscular.", nutrients: "Licopeno, Citrulina, Potássio." }
+                ],
+                sexta: [
+                    { time: "Café da Manhã", food: "Bolo fit de aveia com banana. Café ou chá.", calories: "~320 kcal", benefits: "Energia sustentada, rico em fibras e sem açúcar refinado.", nutrients: "Fibras solúveis, Potássio, Carboidratos complexos." },
+                    { time: "Almoço", food: "Carne de sol acebolada com purê de macaxeira e vinagrete.", calories: "~600 kcal", benefits: "Refeição robusta, rica em sabor e nutrientes para energia e saciedade.", nutrients: "Proteína, Sódio, Potássio, Carboidratos." },
+                    { time: "Lanche", food: "Suco de caju natural.", calories: "~90 kcal", benefits: "Rico em Vitamina C e zinco, fortalece a imunidade.", nutrients: "Vitamina C, Zinco, Ferro." },
+                    { time: "Jantar", food: "Arrumadinho com carne de sol desfiada, feijão fradinho e farofa.", calories: "~450 kcal", benefits: "Prato completo, saboroso e que oferece um bom equilíbrio de macronutrientes.", nutrients: "Proteína, Carboidratos, Fibras." },
+                    { time: "Ceia", food: "1 maçã assada com canela e chá de camomila.", calories: "~100 kcal", benefits: "Confortável, auxilia na digestão e ajuda a controlar o açúcar no sangue.", nutrients: "Fibras, Polifenóis, Antioxidantes." }
+                ],
+                sabado: [
+                    { time: "Café da Manhã", food: "Crepioca (ovo + tapioca) recheada com banana e canela.", calories: "~320 kcal", benefits: "Combinação de proteína e carboidrato que garante saciedade e energia.", nutrients: "Proteína, Carboidratos, Potássio." },
+                    { time: "Almoço", food: "Bisteca de porco grelhada. Arroz branco, feijão macassar e farofa de cenoura.", calories: "~650 kcal", benefits: "Fonte de selênio e vitaminas do complexo B, importantes para o metabolismo.", nutrients: "Proteína, Selênio, Vitaminas B." },
+                    { time: "Lanche", food: "Picolé de fruta caseiro ou água de coco.", calories: "~80 kcal", benefits: "Hidratação e reposição de eletrólitos de forma natural e refrescante.", nutrients: "Potássio, Vitaminas." },
+                    { time: "Jantar", food: "Espetinho de frango com pimentão e cebola. Salada de folhas.", calories: "~350 kcal", benefits: "Jantar leve, social, rico em proteína magra e antioxidantes.", nutrients: "Proteína, Vitamina C, Quercetina." },
+                    { time: "Ceia", food: "Chá de hortelã.", calories: "~0 kcal", benefits: "Auxilia na digestão, alivia náuseas e refresca o hálito.", nutrients: "Mentol." }
+                ],
+                domingo: [
+                    { time: "Café da Manhã", food: "Salada de frutas completa com mel e castanhas. Ovos mexidos (opcional).", calories: "~380 kcal", benefits: "Mix de vitaminas, fibras e gorduras boas para começar o dia com vitalidade.", nutrients: "Vitaminas (A, C), Fibras, Gorduras boas, Proteína." },
+                    { time: "Almoço", food: "Lombo de porco assado com ervas. Arroz, feijão verde e salada de maionese (com azeite).", calories: "~700 kcal", benefits: "Refeição de confraternização, rica em proteína e nutrientes para a saúde masculina.", nutrients: "Proteína, Zinco, Selênio, Vitaminas B." },
+                    { time: "Lanche", food: "Fatias de batata-doce cozida com canela.", calories: "~130 kcal", benefits: "Energia de liberação lenta, ideal para manter a disposição à tarde.", nutrients: "Carboidratos complexos, Vitamina A." },
+                    { time: "Jantar", food: "Caldo de macaxeira com couve e pedaços de carne de sol.", calories: "~400 kcal", benefits: "Comida afetiva, nutritiva, que aquece e conforta.", nutrients: "Carboidratos, Proteína, Cálcio, Ferro." },
+                    { time: "Ceia", food: "1/2 abacate pequeno com um fio de mel.", calories: "~150 kcal", benefits: "Gorduras saudáveis que promovem a saciedade e auxiliam na produção hormonal noturna.", nutrients: "Gorduras monoinsaturadas, Potássio, Fibras." }
+                ]
+            },
+            recipes: [
+                { name: "Bolo Fit de Aveia com Banana", steps: ["Amasse 3 bananas maduras.", "Em uma tigela, misture as bananas amassadas, 2 ovos, 1 xícara de aveia em flocos, 1 colher de canela e 1 colher de fermento em pó.", "Despeje em uma forma pequena untada e asse em forno pré-aquecido a 180°C por cerca de 30 minutos."] },
+                { name: "Lentilha Guisada com Legumes", steps: ["Deixe 250g de lentilha de molho por 1 hora. Escorra.", "Refogue alho e cebola no azeite. Adicione cenoura, batata e chuchu em cubos e refogue.", "Adicione a lentilha, cubra com água ou caldo de legumes, tempere com sal e cominho.", "Cozinhe em fogo baixo até a lentilha e os legumes ficarem macios."] },
+                { name: "Salada Morna de Batata-Doce", steps: ["Cozinhe 1 batata-doce grande em cubos até ficar macia, mas sem desmanchar.", "Em uma tigela, misture a batata-doce morna, 2 xícaras de frango já cozido e desfiado, e um maço de folhas verdes (rúcula, agrião).", "Tempere com azeite, limão, sal e pimenta. Sirva imediatamente."] },
+                { name: "Frango Grelhado", steps: ["Tempere 500g de filé de frango em cubos com alho, sal, pimenta e limão.", "Aqueça azeite em uma frigideira e grelhe os cubos em fogo médio-alto até dourarem.", "Finalize com cheiro-verde picado e sirva."] },
+                { name: "Sopa de Jerimum", steps: ["Cozinhe 500g de jerimum em pedaços com água e sal até ficar macio.", "Bata no liquidificador com gengibre e um pouco da água do cozimento.", "Refogue alho e cebola, adicione o creme, frango desfiado, ajuste o sal e ferva por 5 minutos."] },
+                { name: "Peixe Assado com Batatas", steps: ["Forre uma assadeira com rodelas de batata, cebola e pimentão. Regue com azeite.", "Tempere 2 postas de peixe com sal, alho e limão e coloque sobre os legumes.", "Cubra com papel alumínio e asse a 200°C por 20 min. Retire o papel e asse por mais 15-20 min para dourar."] },
+                { name: "Picadinho de Carne Bovina", steps: ["Sele 500g de carne em cubos na panela de pressão com azeite.", "Refogue alho e cebola, adicione a carne, vagem, cenoura e água.", "Cozinhe na pressão por cerca de 15 minutos."] },
+                { name: "Carne de Sol Acebolada", steps: ["Dessalgue e cozinhe 500g de carne de sol na pressão até ficar macia. Desfie.", "Frite a carne em manteiga de garrafa ou azeite até dourar.", "Adicione 2 cebolas grandes em rodelas e refogue até caramelizar."] },
+                { name: "Bisteca de Porco Grelhada", steps: ["Marine 4 bistecas em limão, alho, sal e pimenta por 30 min.", "Aqueça uma frigideira ou grill com azeite.", "Grelhe as bistecas por 4-5 minutos de cada lado."] },
+                { name: "Lombo de Porco Assado", steps: ["Tempere 800g de lombo com alho, sal, pimenta, alecrim e suco de laranja.", "Asse coberto com papel alumínio a 180°C por 1 hora.", "Retire o papel e asse por mais 30 minutos para dourar."] },
+                { name: "Caldo de Macaxeira", steps: ["Cozinhe 500g de macaxeira até desmanchar e bata no liquidificador com a água.", "Refogue alho e cebola, adicione o creme, carne de sol desfiada e ferva.", "Adicione couve fatiada, ajuste o sal e cozinhe por mais 3 minutos."] }
+            ],
+            shoppingList: {
+                weekly: {
+                    title: "Lista Semanal (Perecíveis)",
+                    items: [
+                        "Mamão: 2 unidades", "Banana: 3 dúzias", "Abacaxi: 1 unidade", "Melão: 2 unidades", "Manga: 3 unidades", "Laranja: 1 kg", "Melancia: 1 fatia grande", "Abacate: 3 unidades", "Limão: 8 unidades", "Acerola/Caju (suco): 500g", "Morangos: 2 caixinhas", "Maçã: 2 unidades",
+                        "Alface/Folhas verdes: 3 maços", "Tomate: 1,5 kg", "Pepino: 2 unidades", "Jerimum: 1 kg", "Brócolis: 1 maço", "Couve: 1 maço", "Pimentão: 3 unidades", "Cenoura: 1 kg", "Batata inglesa: 1 kg", "Chuchu: 2 unidades", "Vagem: 250g", "Cheiro-verde: 2 maços",
+                        "Ovos: 3 dúzias", "Filé de frango: 1,5 kg", "Carne de sol: 1,5 kg", "Peixe Dourada/Tilápia: 500g", "Carne bovina (patinho/alcatra): 1 kg", "Carne de porco (bisteca e lombo): 1,2 kg",
+                        "Macaxeira: 2 kg", "Inhame: 500g", "Batata-doce: 1,5 kg"
+                    ]
+                },
+                monthly: {
+                    title: "Lista Mensal (Não Perecíveis)",
+                    items: [
+                       "Arroz integral: 2 kg", "Arroz branco: 1 kg", "Feijão (verde/macassar/fradinho): 2 kg total", "Lentilha: 500g", "Flocão de milho: 1 kg", "Goma de tapioca: 1 kg", "Aveia em flocos (sem glúten): 1 kg", "Farinha de mandioca: 1 kg", "Fermento em pó: 1 pote",
+                       "Alho: 5 cabeças", "Cebola: 2 kg", "Sal, Pimenta do reino, Cúrcuma, Gengibre, Canela, Alecrim, Cominho",
+                       "Azeite de oliva extra virgem: 500ml", "Óleo de coco/Manteiga de garrafa: 1 pote",
+                       "Leite de coco: 3 garrafas (200ml)", "Castanha de caju: 300g", "Sementes de abóbora: 200g", "Damascos secos: 150g",
+                       "Mel: 1 pote", "Café: 500g", "Chás (camomila, erva-doce, hortelã, cidreira, melissa, mulungu, passiflora)"
+                    ]
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const mainNavButtons = document.querySelectorAll('.main-nav-btn');
+            const contentSections = document.querySelectorAll('.content-section');
+            const planContentEl = document.getElementById('plan-content');
+            const recipesContentEl = document.getElementById('recipes-content');
+            const shoppingContentEl = document.getElementById('shopping-content');
+            
+            function renderPlan(day) {
+                const dayData = appData.mealPlan[day];
+                let html = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">`;
+                dayData.forEach(meal => {
+                    html += `
+                        <div class="bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-col">
+                            <h4 class="font-bold text-lg text-teal-600 mb-2">${meal.time}</h4>
+                            <p class="text-slate-700 flex-grow">${meal.food}</p>
+                            <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500">
+                                <p><strong>${meal.calories}</strong></p>
+                                <p class="mt-1"><strong>Benefícios:</strong> ${meal.benefits}</p>
+                                <p class="mt-1"><strong>Nutrientes:</strong> ${meal.nutrients}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                planContentEl.innerHTML = html;
+            }
+
+            function renderRecipes() {
+                let html = '';
+                appData.recipes.forEach((recipe) => {
+                    html += `
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200">
+                            <button class="recipe-btn w-full text-left p-4 font-semibold text-lg text-teal-700 flex justify-between items-center">
+                                <span>${recipe.name}</span>
+                                <span class="arrow transform transition-transform duration-300">&#9662;</span>
+                            </button>
+                            <div class="recipe-content px-4">
+                                <div class="py-4">
+                                    <ol class="list-decimal list-inside space-y-2 text-slate-600">
+                                        ${recipe.steps.map(step => `<li>${step}</li>`).join('')}
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                recipesContentEl.innerHTML = html;
+            }
+
+            function renderShoppingList() {
+                let html = '';
+                const { weekly, monthly } = appData.shoppingList;
+
+                html += `
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h3 class="text-xl font-bold text-teal-700 mb-4">${weekly.title}</h3>
+                        <ul class="space-y-2 list-inside columns-1 sm:columns-2">
+                            ${weekly.items.map(item => `<li class="text-slate-700 mb-1"><span class="text-teal-500 mr-2">&#10003;</span>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                        <h3 class="text-xl font-bold text-teal-700 mb-4">${monthly.title}</h3>
+                        <ul class="space-y-2 list-inside columns-1 sm:columns-2">
+                            ${monthly.items.map(item => `<li class="text-slate-700 mb-1"><span class="text-teal-500 mr-2">&#10003;</span>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+                shoppingContentEl.innerHTML = html;
+            }
+
+            mainNavButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const sectionId = button.dataset.section;
+                    mainNavButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    contentSections.forEach(section => {
+                        section.id === sectionId ? section.classList.add('active') : section.classList.remove('active');
+                    });
+                });
+            });
+
+            document.getElementById('plan').addEventListener('click', (e) => {
+                if (e.target.closest('.day-btn')) {
+                    const button = e.target.closest('.day-btn');
+                    const day = button.dataset.day;
+                    document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    renderPlan(day);
+                }
+            });
+
+            recipesContentEl.addEventListener('click', (e) => {
+                const button = e.target.closest('.recipe-btn');
+                if (!button) return;
+
+                const content = button.nextElementSibling;
+                const arrow = button.querySelector('.arrow');
+                const isOpening = !content.style.maxHeight;
+
+                document.querySelectorAll('.recipe-content').forEach(rc => {
+                    rc.style.maxHeight = null;
+                });
+                document.querySelectorAll('.recipe-btn .arrow').forEach(ar => {
+                    ar.style.transform = 'rotate(0deg)';
+                });
+                
+                if (isOpening) {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    arrow.style.transform = 'rotate(180deg)';
+                }
+            });
+
+            renderPlan('segunda');
+            renderRecipes();
+            renderShoppingList();
+        });
+    </script>
+</body>
+</html>
